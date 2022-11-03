@@ -14,7 +14,7 @@
         <template v-slot:activator="{ on }">
           <v-text-field
             v-model="displayValue"
-            :label="$t(`App.fhir-reference.${display}`)"
+            :label="$t(`App.fhir-resources-texts.${display}`)"
             readonly
             v-on="on"
             outlined
@@ -23,7 +23,7 @@
             :error-messages="errors"
             :loading="loading"
             dense>
-            <template #label>{{$t(`App.fhir-reference.${display}`)}} <span v-if="required" class="red--text font-weight-bold">*</span></template>
+            <template #label>{{$t(`App.fhir-resources-texts.${display}`)}} <span v-if="required" class="red--text font-weight-bold">*</span></template>
           </v-text-field>
         </template>
         <v-card v-if="!((disabled) || (preset && $route.name === 'resource_add'))">
@@ -39,13 +39,7 @@
             :loading="loading"
             >
             <template slot="label" slot-scope="{ item }">
-              <v-icon v-if="item.isFacility" class="pr-2" color="teal darken-2">
-                mdi-domain
-              </v-icon>
-              <v-icon v-else class="pr-2" color="teal darken-2">
-                mdi-map-marker
-              </v-icon>
-           {{ item.name }}
+              {{ item.name }}
             </template>
           </v-treeview>
         </v-card>
@@ -63,17 +57,17 @@
         :label="display"
         outlined
         dense
-        placeholder="Start typing for selection"
+        placeholder="$t(`App.hardcoded-texts.Start typing for selection`)"
         :rules="rules"
         :disabled="(disabled) || (preset && $route.name === 'resource_add')"
         :error-messages="errors"
         @change="errors = []"
       >
-        <template #label>{{$t(`App.fhir-reference.${display}`)}} <span v-if="required" class="red--text font-weight-bold">*</span></template>
+        <template #label>{{$t(`App.fhir-resources-texts.${display}`)}} <span v-if="required" class="red--text font-weight-bold">*</span></template>
       </v-autocomplete>
     </template>
     <template #header>
-      {{$t(`App.fhir-reference.${display}`)}}
+      {{$t(`App.fhir-resources-texts.${display}`)}}
     </template>
     <template #value>
       {{displayValue}}
@@ -113,8 +107,7 @@ export default {
       active: [],
       open: [],
       treeLookup: {},
-      allAllowed: true,
-      isFacility: false
+      allAllowed: true
     }
   },
   created: function() {
@@ -192,45 +185,15 @@ export default {
       this.loading = true
       let params = {} 
       if ( treetop ) {
-        await this.checkFacility(treetop)
-        if (this.isFacility){
-          params = {"_id": treetop}
-        } else {
-          params = { "partof": treetop }
-        } 
+        params = { "partof": treetop }
       } else {
-        params = { "partof": "ET" }
+        params = { "partof:missing": true }
       }
       params._count = 500
       let url = "/fhir/"+this.resource+"?"+querystring.stringify( params )
       this.items = []
       this.addItems( url, this.items )
 
-    },
-    checkFacility: function(id) {
-      let params = { "_id": id, "_profile":"http://ihris.org/fhir/StructureDefinition/ihris-facility" ,"_summary": "count" }
-      let url = "/fhir/"+this.resource+"?"+querystring.stringify( params )
-      return new Promise( resolve => {
-        fetch( url ).then( response => {
-          if ( response.ok ) {
-            response.json().then( data => {
-              if ( data.total && data.total == 1 ) {
-                this.isFacility = true
-              }
-              resolve()
-            } ).catch( err => {
-              console.log("failed to check facility for",url,err)
-              resolve()
-            } )
-          } else {
-            console.log("failed to check facility for",url,response.status)
-            resolve()
-          }
-        } ).catch( err => {
-          console.log("failed to check facility for",url,err)
-          resolve()
-        } )
-      } )
     },
     checkChildren: function(item) {
       let params = { "partof": item.id, "_summary": "count" }
@@ -258,7 +221,6 @@ export default {
       } )
     },
     addItems: function(url, items) {
-      console.log("the url",url)
       fetch( url ).then( response => {
         if ( response.ok ) {
           response.json().then( async data => {
@@ -268,8 +230,7 @@ export default {
                 let item = { 
                   id: entry.resource.resourceType+"/"+entry.resource.id,
                   name: entry.resource.name,
-                  locked: locked,
-                  isFacility: this.targetProfile === "http://ihris.org/fhir/StructureDefinition/ihris-facility",
+                  locked: locked
                 }
                 await this.checkChildren( item )
                 this.treeLookup[ item.id ] = item.name

@@ -15,7 +15,7 @@ module.exports = {
         target: 'http://localhost:3000/',
         logLevel: 'debug'
       },
-      '^/kibana': {
+      '^/dashboards': {
         target: 'http://localhost:3000/',
         logLevel: 'debug'
       },
@@ -28,6 +28,18 @@ module.exports = {
         logLevel: 'debug'
       },
       '^/users': {
+        target: 'http://localhost:3000/',
+        logLevel: 'debug'
+      },
+      '^/apps': {
+        target: 'http://localhost:3000/',
+        logLevel: 'debug'
+      },
+      '^/ihrisapp': {
+        target: 'http://localhost:3000/',
+        logLevel: 'debug'
+      },
+      '^/translator': {
         target: 'http://localhost:3000/',
         logLevel: 'debug'
       },

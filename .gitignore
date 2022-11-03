@@ -8,12 +8,15 @@ yarn-debug.log*
 yarn-error.log*
 /.idea
 tools/translation-script/.idea
+ihris-frontend/site
 # Runtime data
 pids
 *.pid
 *.seed
 *.pid.lock
 
+# ihris-backend
+ihris-backend/apps/*
 # Dependency directories
 node_modules/
 jspm_packages/
@@ -39,7 +42,7 @@ typings/
 # next.js build output
 .next
 
-./rsa_1024_priv.pem
+# ./rsa_1024_priv.pem
 
 # VIM swp files
 *.swp

@@ -1,5 +1,7 @@
 const fs = require('fs');
 const nconf = require('../modules/config')
+const ihrissmartrequire = require('ihrissmartrequire')
+
 const removeDir = function(path) {
   if (fs.existsSync(path)) {
     const files = fs.readdirSync(path);
@@ -29,6 +31,10 @@ const getFilesFromDir = (searchDir) => {
     }
     const dirsPromises = [];
     dirs.forEach((dir) => {
+      if (!fs.lstatSync(`${searchDir}/${dir}`).isDirectory()) {
+        filesPath.push(`${searchDir}/${dir}`);
+        return
+      }
       dirsPromises.push(new Promise((dresolve, dreject) => {
         fs.readdir(`${searchDir}/${dir}`, (err, files) => {
           if (err) {
@@ -49,7 +55,7 @@ const updateConfigFile = function (path, newValue, callback) {
   let pathString = path.join(':');
   nconf.set(pathString, newValue);
   console.info('Updating config file');
-  let configFile = `${__dirname}/../config/baseConfig.json`;
+  let configFile = ihrissmartrequire.path('config/baseConfig.json');
   let configString = fs.readFileSync( configFile )
   let configData = JSON.parse( configString )
   let index = configData.parameter.findIndex( param => {

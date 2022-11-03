@@ -4,11 +4,11 @@ const exec = require('child_process').exec;
 const axios = require('axios');
 const URI = require('urijs');
 const async = require('async');
-const moment = require('moment');
 const nconf = require('./modules/config')
 const mixin = require('./mixin/generalMixin');
-const fhirAxios = require('./modules/fhirAxios');
- 
+const fhirAxios = require('./modules/fhir/fhirAxios');
+
+const site_path = nconf.get("app:site:path");
 const server = nconf.get("fhir:base")
 const loadKeycloakData = () => new Promise((resolve, reject) => {
   const installed = nconf.get('app:installed');
@@ -39,7 +39,7 @@ const loadKeycloakData = () => new Promise((resolve, reject) => {
           console.info(stderr);
         }
  
-        exec(`sh ${kcadm} create realms -f ${__dirname}/../../resources/keycloak/realm.json`, (err, stdout, stderr) => {
+        exec(`sh ${kcadm} create realms -f ${__dirname}/../resources/keycloak/realm.json`, (err, stdout, stderr) => {
           if (err) {
             return callback(err);
           }
@@ -54,7 +54,7 @@ const loadKeycloakData = () => new Promise((resolve, reject) => {
       });
     },
     theme: (callback) => {
-      exec(`cp -r ${__dirname}/../../resources/keycloak/themes/ihris ${keycloakInstalledLocation}themes`, (err, stdout, stderr) => {
+      exec(`cp -r ${__dirname}/../resources/keycloak/themes/ihris ${keycloakInstalledLocation}themes`, (err, stdout, stderr) => {
         if (err) {
           return callback(err);
         }
@@ -85,12 +85,12 @@ const loadDefaultConfig = () => new Promise((resolve, reject) => {
     return resolve();
   }
   const parameters = nconf.get('app:Parameters');
-  let fullpath = `${__dirname}/${parameters}`;
-    fs.readFile(fullpath, { encoding: 'utf8', flag: 'r' }, (err, data) => {
-          if (err) {
-            console.error(err);
-            errorOccured = true;
-          }
+  let fullpath = `${site_path}/${parameters}`;
+  fs.readFile(fullpath, { encoding: 'utf8', flag: 'r' }, (err, data) => {
+    // if (err) {
+    //   console.error(err);
+    //   errorOccured = true;
+    // }
     const fhirParameters = JSON.parse(data);
     fhirAxios.update(fhirParameters).then(() => {
       console.info('General Config Saved');
@@ -104,11 +104,11 @@ const loadDefaultConfig = () => new Promise((resolve, reject) => {
  
 const loadFSHFiles = () => new Promise(async (resolvePar, rejectPar) => {
   const installed = nconf.get('app:installed');
-  if (installed === "true" ) {
+  if (installed == "true" ) {
     return resolvePar();
   }
   const fshDir = nconf.get('builtFSHFIles');
-  const dirs = await fs.readdirSync(`${__dirname}/${fshDir}`);
+  const dirs = await fs.readdirSync(`${site_path}/${fshDir}`);
   let errorOccured = false;
   async.eachSeries(dirs, (dir, nxtDir) => {
     let files = [];
@@ -117,7 +117,7 @@ const loadFSHFiles = () => new Promise(async (resolvePar, rejectPar) => {
       dir = null;
     } else {
       try {
-        files = fs.readdirSync(`${__dirname}/${fshDir}/${dir}`);
+        files = fs.readdirSync(`${site_path}/${fshDir}/${dir}`);
       } catch (error) {
         console.error(error);
         errorOccured = true;
@@ -127,9 +127,9 @@ const loadFSHFiles = () => new Promise(async (resolvePar, rejectPar) => {
     async.eachSeries(files, (file, nxtFile) => {
       let fullpath;
       if (dir) {
-        fullpath = `${__dirname}/${fshDir}/${dir}/${file}`;
+        fullpath = `${site_path}/${fshDir}/${dir}/${file}`;
       } else {
-        fullpath = `${__dirname}/${fshDir}/${file}`;
+        fullpath = `${site_path}/${fshDir}/${file}`;
       }
       fs.readFile(fullpath, { encoding: 'utf8', flag: 'r' }, (err, data) => {
         if (err) {
@@ -160,8 +160,10 @@ const loadFSHFiles = () => new Promise(async (resolvePar, rejectPar) => {
             console.info(res.headers['content-location']);
             return nxtFile();
           }).catch((err) => {
-            errorOccured = true;
-            console.log(err.response);
+            if(fhir.resourceType !== 'ImplementationGuide') {
+              errorOccured = true;
+              console.log(err.response);
+            }
             //console.error(`fullpath ${JSON.stringify(err.response, null, 2)}`);
             return nxtFile();
           });
@@ -175,16 +177,15 @@ const loadFSHFiles = () => new Promise(async (resolvePar, rejectPar) => {
     return resolvePar();
   });
 });
-
-
-
  
 module.exports = {
   initialize: () => new Promise((resolve, reject) => {
     let errorOccured = false;
     async.series([
       (callback) => {
-        loadKeycloakData().then(() => callback(null)).catch((err) => {
+        loadKeycloakData().then(() => {
+          callback(null)
+        }).catch((err) => {
           errorOccured = true;
           console.error(err);
           return callback(null);

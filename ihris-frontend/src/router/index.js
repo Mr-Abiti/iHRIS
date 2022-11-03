@@ -22,12 +22,12 @@ const routes = [{
   {
     path: '/reset-password',
     name: 'reset-password',
-    component: () => import('../views/auth/reset-password.vue'),
+    component: () => import( /* webpackChunkName: "reset-password" */ '../views/auth/reset-password.vue'),
   },
   {
     path: '/change-password',
     name: 'change-password',
-    component: () => import('../views/auth/change-password.vue')
+    component: () => import( /* webpackChunkName: "change-password" */ '../views/auth/change-password.vue')
   },
   {
     path: '/page/blockContacts',
@@ -126,12 +126,32 @@ const routes = [{
     component: () => import( /* webpackChunkName: "questionnaire" */ "../views/fhir-page-questionnaire.vue")
   },
   {
+    path: "/custom/:path/:component",
+    name: "custom_components",
+    component: () => import( /* webpackChunkName: "custom" */ "../views/custom.vue")
+  },
+  {
+    path: "/apps",
+    name: "apps",
+    component: () => import( /* webpackChunkName: "apps" */ "../views/apps.vue")
+  },
+  {
+    path: "/install-app",
+    name: "install-app",
+    component: () => import( /* webpackChunkName: "install-app" */ "../components/ihris/install-app.vue")
+  },
+  {
+    path: "/uninstall-app",
+    name: "uninstall-app",
+    component: () => import( /* webpackChunkName: "uninstall-app" */ "../components/ihris/uninstall-app.vue")
+  },
+  {
     path: "/dashboard/:id",
     name: "dashboard",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import( /* webpackChunkName: "dashboard" */ "../views/kibana-dashboard.vue")
+    component: () => import( /* webpackChunkName: "dashboard" */ "../views/dashboard.vue")
   },
   {
     path: "/bulk-registration",
